@@ -10,7 +10,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class WrdconvApplication {
 
 	public static void main(String[] args) {
-		System.out.println("Word converted starting...");
+		System.out.println("Word DOCs converted starting...");
 		System.out.println("args: " + Arrays.toString(args));
 		
         SpringApplication app = new SpringApplication(WrdconvApplication.class);
