@@ -17,15 +17,9 @@ public class WrdconvApplication {
         app.setWebApplicationType(WebApplicationType.NONE); // Disable web server
         ApplicationContext context = app.run(args);
         
-        
-		System.out.println("................................................");
-		
         ServiceOne srvOne = context.getBean(ServiceOne.class);
-        //System.out.println("DATA -> " + srvOne.getDate());
         srvOne.transformWordFiles();
         //srvOne.proc01();
-        
-		System.out.println("................................................");
 	}
 
 }

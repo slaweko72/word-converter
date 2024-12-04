@@ -1,6 +1,7 @@
 package pl.slasoft.wrdconv.service;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -13,12 +14,17 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.apache.poi.xwpf.usermodel.XWPFRun;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+
+import com.documents4j.api.DocumentType;
+import com.documents4j.api.IConverter;
+import com.documents4j.job.LocalConverter;
 
 import pl.slasoft.wrdconv.config.CustomConfig;
 
@@ -56,14 +62,6 @@ public class ServiceOne {
             // Find .doc* files in the current folder
             List<Path> docFiles = findDocFiles(currentFolder);            
             logger.info("Number .doc* files found: " + docFiles.size());
-
-//            // Print the list of .doc files
-//            if (docFiles.isEmpty()) {
-//            	logger.info("No .doc* files found in the current folder.");
-//            } else {
-//            	logger.info("Found the following .doc* files:");
-//                docFiles.forEach(dc -> logger.info(dc.toString()));
-//            }
             
             // Create output folder
             File outputFolder = createOutputFolder(currentFolder);
@@ -74,15 +72,47 @@ public class ServiceOne {
             placeholders.put("${DATE}", config.getDate());
             placeholders.put("${MONTH}", config.getMonth());
             
+        	System.out.println();
+        	logger.info("Starting the conversion...");
+        	System.out.println();
             for (Path docFile : docFiles) {
-            	replacePlaceholders(docFile.toString(), outputFolder.toString()+"\\"+docFile.getFileName(), placeholders);
+            	String fileName = docFile.getFileName().toString();
+            	String fileNameWithOutExt = FilenameUtils.removeExtension(fileName);
+            	replacePlaceholders(docFile.toString(), outputFolder.toString() + "\\" + fileName, placeholders);
+            	convertDocToPdf(outputFolder.toString() + "\\" + fileName, outputFolder.toString() + "\\" + fileNameWithOutExt + ".pdf");
+            	System.out.println();
             }
-            
-            //docFiles.forEach(dc -> replacePlaceholders(dc.toString(), null, null));            
 
         } catch (Exception e) {
         	logger.error("transformWordFiles error: " + e.getMessage());
         }		
+	}
+	
+	private void convertDocToPdf(String inputFilePath, String outputFilePath) {
+        // Create file objects for input and output
+        File inputFile = new File(inputFilePath);
+        File outputFile = new File(outputFilePath);
+
+        // Correct type: Use IConverter instead of LocalConverter
+        IConverter converter = LocalConverter.builder().build();
+
+        try (FileInputStream inputStream = new FileInputStream(inputFile);
+             FileOutputStream outputStream = new FileOutputStream(outputFile)) {
+
+            // Perform conversion
+            converter.convert(inputStream).as(DocumentType.MS_WORD)
+                    .to(outputStream).as(DocumentType.PDF)
+                    .execute();
+
+            logger.info("Conversion successful! PDF created at: " + outputFilePath);
+
+        } catch (Exception e) {
+        	logger.error("Error during conversion: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            // Shut down the converter to release resources
+            converter.shutDown();
+        }
 	}
 	
     // Method to replace placeholders in a Word document
@@ -97,7 +127,7 @@ public class ServiceOne {
             if (runs != null) {
                 for (XWPFRun run : runs) {
                     String text = run.getText(0);
-                    System.out.println("--> " + text);
+                    //System.out.println("--> " + text);
                     if (text != null) {
                         for (String placeholder : placeholders.keySet()) {
                             if (text.contains(placeholder)) {
@@ -114,7 +144,7 @@ public class ServiceOne {
         // Save the modified document to a new location
         try (FileOutputStream out = new FileOutputStream(new File(outputFilePath))) {
             document.write(out);
-            System.out.println("Modified document saved to: " + outputFilePath);
+            logger.info("Modified document saved to: " + outputFilePath);
         }
 
         // Close the document
