@@ -73,19 +73,25 @@ public class ServiceOne {
             placeholders.put("${MONTH}", config.getMonth());
             
         	System.out.println();
-        	logger.info("Starting the conversion...");
+        	logger.info("*** S T A R T  the conversion ***");
         	System.out.println();
             for (Path docFile : docFiles) {
             	String fileName = docFile.getFileName().toString();
             	String fileNameWithOutExt = FilenameUtils.removeExtension(fileName);
+            	            	
             	replacePlaceholders(docFile.toString(), outputFolder.toString() + "\\" + fileName, placeholders);
             	convertDocToPdf(outputFolder.toString() + "\\" + fileName, outputFolder.toString() + "\\" + fileNameWithOutExt + ".pdf");
+            	
+            	//replacePlaceholdersVer2Tmp(docFile.toString(), outputFolder.toString() + "\\" + fileName, outputFolder.toString() + "\\" + fileNameWithOutExt + ".pdf", placeholders);
+            	
             	System.out.println();
             }
 
         } catch (Exception e) {
         	logger.error("transformWordFiles error: " + e.getMessage());
-        }		
+        }
+        
+        logger.info("*** S T O P ***");
 	}
 	
 	private void convertDocToPdf(String inputFilePath, String outputFilePath) {
@@ -150,7 +156,70 @@ public class ServiceOne {
         // Close the document
         document.close();
     }
+
+    
 	
+//    private void replacePlaceholdersVer2Tmp(String inputFilePath, String outputWordFilePath, String outputPdfFilePath, HashMap<String, String> placeholders) 
+//            throws IOException, DocumentException {
+//    	
+//    	InputStream docxInputStream = new FileInputStream(inputFilePath);
+//    	try (XWPFDocument document = new XWPFDocument(docxInputStream); 
+//    	    OutputStream pdfOutputStream = new FileOutputStream(outputPdfFilePath);) {
+//    	    Document pdfDocument = new Document();
+//    	    PdfWriter.getInstance(pdfDocument, pdfOutputStream);
+//    	    pdfDocument.open();
+//    	            
+//    	    List<XWPFParagraph> paragraphs = document.getParagraphs();
+//    	    for (XWPFParagraph paragraph : paragraphs) {
+//    	        pdfDocument.add(new Paragraph(paragraph.getText()));
+//    	    }
+//    	    pdfDocument.close();
+//    	}    	
+//    	
+//    	
+////        // Load the Word document
+////        XWPFDocument wordDocument = new XWPFDocument(new java.io.FileInputStream(inputFilePath));
+////
+////        OutputStream pdfOutputStream = new FileOutputStream("output.pdf");
+////        Document pdfDocument = new Document();
+////        PdfWriter.getInstance(pdfDocument, pdfOutputStream);
+////        pdfDocument.open();
+////        
+////        // Iterate over all paragraphs in the document
+////        for (XWPFParagraph paragraph : wordDocument.getParagraphs()) {
+////            List<XWPFRun> runs = paragraph.getRuns();
+////            if (runs != null) {
+////                for (XWPFRun run : runs) {
+////                    String text = run.getText(0);
+////                    //System.out.println("--> " + text);
+////                    if (text != null) {
+////                        for (String placeholder : placeholders.keySet()) {
+////                            if (text.contains(placeholder)) {
+////                                // Replace the placeholder with the actual value
+////                                text = text.replace(placeholder, placeholders.get(placeholder));
+////                                run.setText(text, 0); // Replace the text in the run
+////                            }
+////                        }
+////                    }
+////                }
+////            }
+////            //????????????
+////            pdfDocument.add(new Paragraph(paragraph.getText()));
+////        }
+////
+////        // Save the modified Word document to a new location
+////        try (FileOutputStream out = new FileOutputStream(new File(outputWordFilePath))) {
+////        	wordDocument.write(out);
+////            logger.info("Modified Word document saved to: " + outputWordFilePath);
+////        }
+////
+////        // Close the documents
+////        wordDocument.close();
+////        
+////        pdfDocument.close();
+//    }
+
+    
 	private File createOutputFolder(Path currentFolder) throws Exception {
 		String folderName = getFolderName();		
 		File newDirectory = new File(currentFolder.toFile(), folderName); 
